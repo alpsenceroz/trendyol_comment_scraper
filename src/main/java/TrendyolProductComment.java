@@ -4,8 +4,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.JavascriptExecutor;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -21,7 +21,7 @@ public class TrendyolProductComment extends Thread{
     private WebDriver driver;
     private Statement stmt;
     // private FirefoxOptions options;
-    private ChromeOptions options;
+    private FirefoxOptions options;
 
     public TrendyolProductComment(Element link, Statement stmts, Connection c) {
 
@@ -29,10 +29,10 @@ public class TrendyolProductComment extends Thread{
         this.link=link;
         this.stmt=stmts;
 
-        WebDriverManager.chromedriver().setup();
-        this.options = new ChromeOptions();
+        WebDriverManager.firefoxdriver().setup();
+        this.options = new FirefoxOptions();
         this.options.addArguments("--headless");
-        this.driver = new ChromeDriver(this.options);
+        this.driver = new FirefoxDriver(this.options);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class TrendyolProductComment extends Thread{
         }
 
         // Scroll the comments unti. reach the bottom of the page 
-       int SCROLL_PAUSE_TIME = 1000; // in milliseconds
+       int SCROLL_PAUSE_TIME = 4000; // in milliseconds
 
        // Get scroll height
        JavascriptExecutor js = (JavascriptExecutor) driver;

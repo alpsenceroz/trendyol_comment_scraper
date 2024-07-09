@@ -1,2 +1,4 @@
 target/maven-status
 .vscode
+hs_err*
+TrendyolProduct.sqlite3

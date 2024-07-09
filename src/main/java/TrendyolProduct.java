@@ -7,6 +7,57 @@ import java.util.List;
 
 public class TrendyolProduct {
 
+    public static void fetch(String genderFilter, String brandFilter, String categoryFilter) throws IOException, InterruptedException, ClassNotFoundException, SQLException{
+        String url = "https://www.trendyol.com/sr?"+genderFilter+brandFilter+categoryFilter+"&os=1&pi=";
+
+        System.setProperty("LD_BIND_NOW", "1");
+        System.setProperty("NO_AT_BRIDGE", "1");
+
+        // sqlite
+        Class.forName("org.sqlite.JDBC");
+        Connection c = DriverManager.getConnection("jdbc:sqlite:TrendyolProduct.sqlite3");
+        c.setAutoCommit(false);
+        Statement stmt = c.createStatement();
+        // TODO: check if there is related results for the search query
+        
+
+        // Iterate over the pages until the end
+        int page = 0;
+        while(true) {
+            Document doc = Jsoup.connect(url+String.valueOf(page)).get();
+            System.out.println("Page : "+String.valueOf(page));
+            //System.out.println(doc.html());
+
+            // Get the product link from the listed products
+            List<Element> links = doc.select("div.p-card-chldrn-cntnr > a");
+
+            // if there is no product in the page, terminate the loop
+            if(links.size() == 0) {
+                System.out.println("No search result for category filter " + categoryFilter );
+                break;
+            }
+
+            for (Element link : links)
+            {
+                // Initialize TrendyolProductComment threads for every single product in the page
+                new TrendyolProductComment(link, stmt, c).start();
+
+                try {
+                    Thread.sleep(4000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            // increment the page number
+            page++;
+        }
+
+        
+    stmt.close();
+    c.close();
+        
+    }
+
     public static void main(String args[]) throws IOException, InterruptedException, ClassNotFoundException, SQLException {
 
         //String genders = "1,2,3";
@@ -31,6 +82,8 @@ public class TrendyolProduct {
         // url search keys
         String genderFilter = "wg=1,2,3"; // all genders
         String brandFilter = ""; // all brands
+        String categoryFilter = "";
+
         int CATEGORY_RANGE = 250; // categories from 1 to N
 
         if (!genders.isEmpty()){
@@ -41,6 +94,12 @@ public class TrendyolProduct {
             brandFilter = "&wb=" + brands;
         }
 
+
+        if (categories.length == 0 && CATEGORY_RANGE == 0){
+
+            fetch(genderFilter, brandFilter, categoryFilter);
+        }
+
         if (categories.length == 0){
             categories = new int[CATEGORY_RANGE];
             for (int i = 0; i < CATEGORY_RANGE; i++){
@@ -48,56 +107,9 @@ public class TrendyolProduct {
             }
         }
 
-
         for (int category: categories){
-            String categoryFilter = "&wc="+category;
-            String url = "https://www.trendyol.com/sr?"+genderFilter+brandFilter+categoryFilter+"&os=1&pi=";
-
-            System.setProperty("LD_BIND_NOW", "1");
-            System.setProperty("NO_AT_BRIDGE", "1");
-
-            // sqlite
-            Class.forName("org.sqlite.JDBC");
-            Connection c = DriverManager.getConnection("jdbc:sqlite:TrendyolProduct.sqlite3");
-            c.setAutoCommit(false);
-            Statement stmt = c.createStatement();
-            // TODO: check if there is relates results for the search query
-            
-
-            // Iterate over the pages until the end
-            int page = 0;
-            while(true) {
-                Document doc = Jsoup.connect(url+String.valueOf(page)).get();
-                System.out.println("Page : "+String.valueOf(page));
-                //System.out.println(doc.html());
-
-                // Get the product link from the listed products
-                List<Element> links = doc.select("div.p-card-chldrn-cntnr > a");
-
-                // if there is no product in the page, terminate the loop
-                if(links.size() == 0) {
-                    System.out.println("No search result for category " + category);
-                    break;
-                }
-
-                for (Element link : links)
-                {
-                    // Initialize TrendyolProductComment threads for every single product in the page
-                    new TrendyolProductComment(link, stmt, c).start();
-
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                // increment the page number
-                page++;
-            }
-
-            
-        stmt.close();
-        c.close();
+            categoryFilter = "&wc="+category;
+            fetch(genderFilter, brandFilter, categoryFilter);
             
         } 
 

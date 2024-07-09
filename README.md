@@ -49,6 +49,5 @@ Run the project using maven.
 ```
 maven clean
 maven install
-maven compile
-java -jar <created jar file>
+java -jar <created jar file>****
 ```
