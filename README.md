@@ -50,5 +50,5 @@ Run the project using maven.
 maven clean
 maven install
 maven compile
-mvn exec:java -Dexec.mainClass="TrendyolProduct"
+java -jar <created jar file>
 ```

@@ -53,7 +53,8 @@ public class TrendyolProduct {
             String categoryFilter = "&wc="+category;
             String url = "https://www.trendyol.com/sr?"+genderFilter+brandFilter+categoryFilter+"&os=1&pi=";
 
-            //System.setProperty("LD_BIND_NOW", "1");
+            System.setProperty("LD_BIND_NOW", "1");
+            System.setProperty("NO_AT_BRIDGE", "1");
 
             // sqlite
             Class.forName("org.sqlite.JDBC");
@@ -63,16 +64,17 @@ public class TrendyolProduct {
             // TODO: check if there is relates results for the search query
             
 
-            // Iterate over the pages
-            // TODO: fix hardcoded page number
-            for(int i=1; i<209; i++) {
-
-                Document doc = Jsoup.connect(url+String.valueOf(i)).get();
-                System.out.println("Epoch : "+String.valueOf(i));
+            // Iterate over the pages until the end
+            int page = 0;
+            while(true) {
+                Document doc = Jsoup.connect(url+String.valueOf(page)).get();
+                System.out.println("Page : "+String.valueOf(page));
                 //System.out.println(doc.html());
 
                 // Get the product link from the listed products
                 List<Element> links = doc.select("div.p-card-chldrn-cntnr > a");
+
+                // if there is no product in the page, terminate the loop
                 if(links.size() == 0) {
                     System.out.println("No search result for category " + category);
                     break;
@@ -84,12 +86,15 @@ public class TrendyolProduct {
                     new TrendyolProductComment(link, stmt, c).start();
 
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(2000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+                // increment the page number
+                page++;
             }
+
             
         stmt.close();
         c.close();
